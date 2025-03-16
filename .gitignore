@@ -1,0 +1,35 @@
+# Python project gitignore for SM Technology chatbot
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+.venv/
+env/
+.env/
+
+# Config files with secrets
+app/config.py
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local data
+logs/
+*.log
+.DS_Store
+.ipynb_checkpoints/
+
+# Model cache
+.cache/
+.pytorch_pretrained_bert/
