@@ -15,7 +15,7 @@ build/
 env/
 .env/
 
-# Config files with secrets
+# Config files with secrets za
 app/config.py
 
 # IDE files

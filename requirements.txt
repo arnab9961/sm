@@ -2,3 +2,5 @@ fastapi
 uvicorn
 transformers
 torch
+sentence_transformers
+jinja2

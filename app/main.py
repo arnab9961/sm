@@ -7,6 +7,9 @@ from typing import List
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi import Request
 
 # Import settings from config
 try:
@@ -43,6 +46,11 @@ if "faq" in dataset:
 # FastAPI app
 app = FastAPI()
 
+templates = Jinja2Templates(directory="templates")
+
+# Mount static files if you need CSS/JS files (optional)
+# app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Pydantic model for chat input
 class ChatInput(BaseModel):
     message: str
@@ -54,8 +62,8 @@ class DatasetItem(BaseModel):
 
 # Root endpoint
 @app.get("/")
-async def root():
-    return {"message": "Welcome to the SM Technology Chatbot!"}
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 # Function to find relevant context from the dataset
 def retrieve_context(query, top_k=3, threshold=0.6):
@@ -129,6 +137,11 @@ async def chat(chat_input: ChatInput):
             for item in dataset["faq"]:
                 if chat_input.message.lower() in item["question"].lower():
                     return {"response": item["answer"]}
+                
+        # For the specific graphics design question
+        if "graphics" in user_query and "course" in user_query:
+            if "faq" in dataset and not relevant_context:
+                return {"response": "SM Technology does not currently offer graphics design courses in our curriculum."}
         
         # Semantic search for relevant context (RAG approach)
         relevant_context = retrieve_context(chat_input.message)
@@ -142,12 +155,11 @@ async def chat(chat_input: ChatInput):
         
         # Enhanced system prompt to guide the model behavior
         system_prompt = """You are the SM Technology chatbot.
-Respond DIRECTLY with the EXACT information from the context.
-Answer in 1-2 sentences maximum.
-For unavailable information, respond EXACTLY with: "This information isn't available in my knowledge base."
-NEVER explain your reasoning.
-NEVER include numbered points.
-Format important names or terms with **bold** when relevant."""
+Answer directly with information from the context only.
+Keep responses to 1 sentence when possible.
+For unknown information say only: "This information isn't available in my knowledge base."
+NO reasoning, NO numbered points, NO explanations.
+Be professional and concise."""
         
         # Include context in prompt if available
         if context_text:
@@ -159,16 +171,16 @@ Format important names or terms with **bold** when relevant."""
         try:
             # Adjust generation parameters for better results on unknown topics
             outputs = text_generator(
-                prompt,
-                max_length=MAX_LENGTH,
-                num_return_sequences=1,
-                temperature=TEMPERATURE,
-                do_sample=True,
-                top_p=TOP_P,
-                top_k=TOP_K,
-                repetition_penalty=REPETITION_PENALTY,
-                truncation=True
-            )
+                                prompt,
+                                max_length=100,  # Reduce from current value
+                                temperature=0.2,  # Lower temperature for more focused responses
+                                num_return_sequences=1,
+                                do_sample=True,
+                                top_p=TOP_P,
+                                top_k=TOP_K,
+                                repetition_penalty=1.2,  # Increase slightly to reduce repetition
+                                truncation=True
+                            )
             
             # The output will be a list with one item, which is a dict containing the generated text
             response_text = outputs[0]['generated_text']

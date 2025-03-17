@@ -4,7 +4,7 @@
 HUGGINGFACE_TOKEN = "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"
 
 # Model settings
-MODEL_NAME = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.3"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # Dataset settings
